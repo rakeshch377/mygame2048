@@ -1,0 +1,63 @@
+**********Ingress controller setup************
+
+In service manisfest we provided nodeport which means anyone in vpc can access the application using CLUSTER-IP:port 
+
+cmd: kubectl get svc -n game-2048
+
+       NAME         TYPE        CLUSTER-IP   EXTERNAL-IP   PORT(S)   AGE
+       kubernetes   ClusterIP   10.100.0.1   <none>        443/TCP   40m
+
+we observe no external IP is found,But our goal is access the access the application to external world so we use Ingress controller.
+
+
+Ingress in Kubernetes:
+An Ingress is a Kubernetes resource that manages external access to services within a cluster, typically HTTP and HTTPS. Ingress can provide load balancing, SSL termination, and name-based virtual hosting.
+
+
+Ingress Controller:
+An IngressSController is responsible for implementing the rules defined in the Ingress resources. It watches the Kubernetes API for Ingress resources and updates its configuration to expose services externally.
+
+
+Common IngressS Controllers:
+
+NGINX Ingress Controller
+ALB Ingress Controller
+
+cmd: kubectl get ingress -n game-2048
+
+       NAME           CLASS   HOSTS   ADDRESS   PORTS   AGE
+       ingress-2048   alb     *                 80      2m10s
+
+
+-->ingress-2048 is created with alb class with hosts(*) which means any host can access but there is no address, the address is provided by application load balancer to excess the application from outside
+
+-->when we deploy ALB ingress controller it reads the ingress resource which consist of some rules and create application load balancer with target group and port automatically.
+
+-->To create application load balancer the ALB ingress controller (because ALB ingress controller is a pod which consist service account, this service account needs to talk to aws services) needs to access some AWS services , so it needs IAM role with specified policy attached.
+
+
+creation of IAM OIDC provider:
+
+cmd : eksctl utils associate-iam-oidc-provider --cluster <cluster_name> --region <region_name> --approve
+
+Download the aws load balancer controller policy and create a IAM policy:
+
+1)curl -O https://raw.githubusercontent.com/kubernetes-sigs/aws-load-balancer-controller/v2.5.4/docs/install/iam_policy.json
+
+2)aws iam create-policy --policy-name AWSLoadBalancerControllerIAMPolicy --policy-document file://iam_policy.json
+
+3)create a IAM role and attach the policy to role and integrate with serivice account, so service account starts of ALB controller pod starts communicate with aws via this role
+
+eksctl create iamserviceaccount --cluster=<your-cluster-name> --namespace=kube-system --name=aws-load-balancer-controller --role-name AmazonEKSLoadBalancerControllerRole --attach-policy-arn=arn:aws:iam::<your-aws-account-id>:policy/AWSLoadBalancerControllerIAMPolicy --region <region_name> --approve
+
+4)install the aws load balancer controller using helm
+   *choco install helm
+   *helm repo add eks https://aws.github.io/eks-charts
+   *helm repo update eks
+   *helm install aws-load-balancer-controller eks/aws-load-balancer-controller -n kube-system --set clusterName=<your-cluster-name> --set serviceAccount.create=false --set serviceAccount.name=aws-load-balancer-controller --set region=<region> --set vpcId=<your-vpc-id> 
+
+-->Now 2 aws load balancer controllers are created in 2 availability zones
+
+    cmd: kubectl get pods -n kube-system
+ 
+
