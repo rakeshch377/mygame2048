@@ -1,0 +1,15 @@
+cluster deletion:
+
+eksctl delete cluster --name <cluster_name> --region <region_name>
+
+
+fargate profile deletion:
+
+list fargate profiles:
+
+     cmd: aws eks list-fargate-profiles --cluster-name <cluster_name> --region <region_name>
+
+deletion:
+
+     cmd : aws eks delete-fargate-profile --cluster-name <cluster_name> --fargate-profile-name            <profile_name> --region <region_name>
+
