@@ -1,0 +1,73 @@
+************EKS CLUSTER SET UP***********
+
+Managed Control Plane: 
+EKS takes care of managing the Kubernetes control plane components, such as the API server, controller manager, and etcd. AWS handles upgrades, patches, and ensures high availability of the control plane.
+
+Automated Updates: 
+EKS automatically updates the Kubernetes version, eliminating the need for manual intervention and ensuring that the cluster stays up-to-date with the latest features and security patches.
+
+
+Scalability:
+EKS can automatically scale the Kubernetes control plane based on demand, ensuring the cluster remains responsive as the workload increases.
+
+
+AWS Integration: 
+EKS seamlessly integrates with various AWS services, such as AWS IAM for authentication and authorization, Amazon VPC for networking, and AWS Load Balancers for service exposure.
+
+Security and Compliance: 
+EKS is designed to meet various security standards and compliance requirements, providing a secure and compliant environment for running containerized workloads.
+
+
+Monitoring and Logging: 
+EKS integrates with AWS CloudWatch for monitoring cluster health and performance metrics, making it easier to track and troubleshoot issues.
+
+
+Ecosystem and Community: 
+Being a managed service, EKS benefits from continuous improvement, support, and contributions from the broader Kubernetes community.
+
+
+cmd : eksctl create cluster --name <cluster_name> --region <region_name> --fargate
+
+
+fargate use cases:
+
+AWS Fargate is a serverless compute engine for containers that works with both Amazon Elastic Container Service (ECS) and Amazon Elastic Kubernetes Service (EKS). Here are some of the primary uses and benefits of Fargate:
+
+
+1. Simplified Container Management
+Serverless Approach: Fargate eliminates the need to manage the underlying infrastructure, allowing developers to focus on application development.
+Automatic Scaling: Fargate automatically scales the number of containers based on the specified requirements without needing manual intervention.
+
+
+2. Cost Efficiency
+Pay-as-You-Go: Fargate charges only for the resources (CPU and memory) that your containers consume, making it cost-effective by avoiding over-provisioning.
+No Upfront Costs: There are no upfront costs or long-term commitments, which helps manage budgets more efficiently.
+
+
+3. Enhanced Security
+Isolation: Each Fargate task or pod runs in its own dedicated kernel, enhancing security by providing isolation from other tasks and pods.
+IAM Roles: Fargate integrates with AWS IAM roles to provide fine-grained access control to AWS services and resources.
+
+
+Configuring kubectl for EKS:
+
+Once kubectl is installed, you need to configure it to work with your EKS cluster.
+In the AWS Management Console, go to the EKS service and select your cluster.
+Click on the "Config" button and follow the instructions to update your kubeconfig file.
+
+Alternatively, you can use the AWS CLI to update the kubeconfig file:
+
+aws eks update-kubeconfig --name <cluster_name> --region <region_name>
+
+
+Creating another fargate profile(optional):
+
+eksctl create fargateprofile \
+    --cluster <cluster_name> \
+    --region <region_name> \
+    --name alb-sample-app \
+    --namespace game-2048
+Bydefault we have default or kubesystem namespaces for creating fargate instances.Now we can also create fargate instances in both default or kubesystem namespaces and game-2048 namespace.
+
+
+
